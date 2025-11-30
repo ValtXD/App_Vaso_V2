@@ -1,0 +1,51 @@
+import 'dart:async';
+import 'dart:math';
+import '../models/sensor_reading.dart';
+
+class SensorService {
+  final _controller = StreamController<SensorReading>.broadcast();
+  StreamSubscription? _ticker;
+  final Random _rand = Random();
+
+  double _moisture = 60;
+  double _light = 50;
+
+  bool pumpOn = false;
+  bool lampOn = false;
+
+  Stream<SensorReading> get readings => _controller.stream;
+
+  void start() {
+    _ticker = Stream.periodic(const Duration(seconds: 2)).listen((_) {
+      final moistureDrift = _rand.nextDouble() * 2 - 1;
+      final lightDrift = _rand.nextDouble() * 4 - 2;
+
+      if (pumpOn) {
+        _moisture = min(100, _moisture + _rand.nextDouble() * 5);
+      } else {
+        _moisture = (_moisture + moistureDrift).clamp(0, 100);
+      }
+
+      if (lampOn) {
+        _light = min(100, _light + _rand.nextDouble() * 4);
+      } else {
+        _light = (_light + lightDrift).clamp(0, 100);
+      }
+
+      _controller.add(SensorReading(soilMoisture: _moisture, lightLevel: _light));
+    });
+  }
+
+  void setPump(bool on) => pumpOn = on;
+  void setLamp(bool on) => lampOn = on;
+
+  void stop() {
+    _ticker?.cancel();
+    _ticker = null;
+  }
+
+  void dispose() {
+    stop();
+    _controller.close();
+  }
+}
