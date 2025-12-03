@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'theme.dart';
 import 'providers/sensor_provider.dart';
 import 'pages/home_page.dart';
+import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   final provider = SensorProvider();
   await provider.initNotifications();
-  provider.start();
+  await provider.start();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => provider),
-      ],
+    ChangeNotifierProvider(
+      create: (_) => provider,
       child: const PlantCareApp(),
     ),
   );
